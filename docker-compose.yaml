@@ -1,10 +1,42 @@
 services:
+
+  postgres:
+    image: postgres:latest  # Use the latest version or a specific one
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: myuser           # PostgreSQL username
+      POSTGRES_PASSWORD: mypassword   # PostgreSQL password
+      POSTGRES_DB: mydatabase         # Default database name
+    ports:
+      - "5432:5432"  # Map PostgreSQL port to host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistent data storage
+
+  pgadmin:
+    image: dpage/pgadmin4  # Latest pgAdmin image
+    container_name: pgadmin_container
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com  # Login email for pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: admin          # Password for pgAdmin
+    ports:
+      - "8080:80"  # Map pgAdmin port to host
+    depends_on:
+      - postgres
+    
   backend:
     image: backend
     ports:
       - "8080:8080"
 
   frontend:
+    build: .
     image: frontend
     ports:
       - "3000:3000"
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  postgres_data:
