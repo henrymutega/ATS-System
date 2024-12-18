@@ -1,10 +1,4 @@
 services:
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000" 
-
   backend:
     build: ./backend
     ports:
@@ -42,6 +36,20 @@ services:
       - "8080:80"  # Map pgAdmin port to host
     depends_on:
       - postgres
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app  # Mount your local frontend directory to the container
+      - /app/node_modules  # Prevents overwriting node_modules with local host version
+    depends_on:
+      - backend 
+    command: npm run dev  # Run Next.js in development mode
+
 
 volumes:
   postgres_data:
