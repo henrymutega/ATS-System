@@ -1,19 +1,23 @@
+# Use the official Go image as the base image
 FROM golang:latest
 
+# Set the working directory inside the container
 WORKDIR /app
 
-COPY go.mod .
-COPY main.go .
+# Copy go.mod and go.sum files to download dependencies
+COPY go.mod go.sum ./
 
 # Download project dependencies
 RUN go mod download
 
+# Copy the rest of the application code
+COPY . .
+
 # Build the Go binary
 RUN go build -o main .
 
-RUN go get
-RUN go build -o bin .
-
+# Expose the application port
 EXPOSE 8080
 
-ENTRYPOINT ["./main"]
+# Command to run the binary
+CMD ["./main"]
