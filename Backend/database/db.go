@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -16,14 +15,15 @@ var DB *sql.DB
 func InitDB() {
 
 	// Connection string to connect to the PostgreSQL database
-	connStr := fmt.Sprintf(
-		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-	)
+	connStr := "postgres://postgres:henryceobds254@localhost:5432/mydb"
+	// fmt.Sprintf(
+	// 	"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
+	// 	os.Getenv("DB_USER"),
+	// 	os.Getenv("DB_PASSWORD"),
+	// 	os.Getenv("DB_NAME"),
+	// 	os.Getenv("DB_HOST"),
+	// 	os.Getenv("DB_PORT"),
+	// )
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
