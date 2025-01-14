@@ -1,5 +1,7 @@
 "use client"
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import axiosInstance from '../../../utilis/axios';
 
 const Signup = () => {
@@ -44,6 +46,7 @@ const Signup = () => {
 
       if (response.status >= 200 && response.status < 300){
         alert("Sign-up successful!");
+        router.push("/login");
         console.log(response.data);
         setFormData({ username: "", email: "", password: "", confirmPassword: "" });
       }
