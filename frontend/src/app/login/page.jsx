@@ -1,6 +1,36 @@
-import React from 'react'
+"use client"
+import React from 'react';
+import { useState } from 'react';
+import axiosInstance from '../../../utilis/axios';
 
 const Login = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await axiosInstance.post("/login", formData);
+
+      if (response.status >= 200 && response.status < 300) {
+        alert("Login successful!");
+        console.log(response.data);
+        setFormData({ email: "", password: "" });
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Login failed!");
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="wrapper">
     <h2>Login</h2>
@@ -24,4 +54,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default Login;
