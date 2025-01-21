@@ -24,17 +24,20 @@ func main() {
 
 	// Set up the router and routes
 	r := mux.NewRouter()
-	r.HandleFunc("/signup", routes.SignUpHandler).Methods("POST")
-	r.HandleFunc("/login", routes.LoginHandler).Methods("POST")
+	r.HandleFunc("/signup", routes.SignUpHandler).Methods("POST", "OPTIONS")
+	r.HandleFunc("/login", routes.LoginHandler).Methods("POST", "OPTIONS")
 
 	// Apply CORS middleware
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),                             // Allow all origins for now, you can specify specific ones if needed
-		handlers.AllowedMethods([]string{"POST", "GET", "OPTIONS"}),        // Allowed methods
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Allowed headers
+		handlers.AllowedOrigins([]string{"http://localhost:3000"}), // Allow frontend origin
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-Requested-With", "Accept"}),
+		handlers.AllowCredentials(),
+		handlers.ExposedHeaders([]string{"Content-Length"}),
+		handlers.MaxAge(86400),
 	)(r)
 
 	// Start the HTTP Server
-	fmt.Println("Server is running at 8080")
-	log.Fatal(http.ListenAndServe(":8080", corsHandler))
+	fmt.Println("Server is running at 8081")
+	log.Fatal(http.ListenAndServe(":8081", corsHandler))
 }
