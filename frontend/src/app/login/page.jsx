@@ -2,6 +2,7 @@
 import React from 'react';
 import { useState } from 'react';
 import axiosInstance from '../../../utilis/axios';
+import { useRouter } from 'next/navigation';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -10,6 +11,7 @@ const Login = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };  
+const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +23,7 @@ const Login = () => {
       if (response.status >= 200 && response.status < 300) {
         alert("Login successful!");
         console.log(response.data);
+        router.push("/");
         setFormData({ email: "", password: "" });
         setLoading(false);
       }

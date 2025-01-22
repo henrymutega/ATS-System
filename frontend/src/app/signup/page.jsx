@@ -7,7 +7,8 @@ import axiosInstance from '../../../utilis/axios';
 const Signup = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "", 
     password: "",
     confirmPassword: "",
@@ -25,8 +26,8 @@ const Signup = () => {
     setError("");
 
     // Validation
-    if (!formData.name.trim()) {
-      setError("Name is required");
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
+      setError("First name and last name are required");
       return;
     }
     if (!formData.email.includes("@")) {
@@ -46,7 +47,8 @@ const Signup = () => {
 
     try {
       const response = await axiosInstance.post("/signup", {
-        name: formData.name,
+        firstname: formData.firstname, 
+        lastname: formData.lastname,
         email: formData.email,
         password: formData.password,
       });
@@ -75,9 +77,19 @@ const Signup = () => {
         <div className="input-box">
           <input
             type="text"
-            name="name"
-            placeholder="Enter your name"
-            value={formData.name}
+            name=" firstname"
+            placeholder="Enter your Fist Name"
+            value={formData.firstname}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="text"
+            name="lastname"
+            placeholder="Enter your Last Name"
+            value={formData.lastname}
             onChange={handleChange}
             required
           />
