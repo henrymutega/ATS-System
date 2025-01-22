@@ -50,7 +50,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if user already exists
 	var exists bool
 	err = database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", user.Email).Scan(&exists)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Printf("Error checking existing user: %v", err)
 		http.Error(w, "Error checking user existence", http.StatusInternalServerError)
 		return
