@@ -15,6 +15,7 @@ const Signup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
@@ -24,46 +25,74 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Validation
-    if (!formData.firstname.trim() || !formData.lastname.trim()) {
-      setError("First name and last name are required");
-      return;
-    }
-    if (!formData.email.includes("@")) {
-      setError("Please enter a valid email");
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
-      return;
-    }
-
+    setSuccess("");
     setLoading(true);
 
     try {
+      // Validation
+      if (!formData.firstname.trim() || !formData.lastname.trim()) {
+        setError("First name and last name are required");
+        return;
+      }
+      if (!formData.email.includes("@")) {
+        setError("Please enter a valid email address");
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError("Password must be at least 6 characters long");
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+
       const response = await axiosInstance.post("/signup", {
-        firstname: formData.firstname, 
+        firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
         password: formData.password,
       });
 
-      console.log("Signup response:", response.data);
+      setSuccess("Sign up successful...");
+      
+      // Clear form data
+      setFormData({
+        firstname: "",
+        lastname: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
 
-      if (response.data.status === "success") {
-        alert("Sign-up successful!");
+      // Redirect after a short delay
+      setTimeout(() => {
         router.push("/login");
-      } else {
-        setError(response.data.message || "Signup failed");
-      }
+      }, 2000);
+
     } catch (error) {
-      console.error("Signup error:", error);
-      setError(error.response?.data?.message || "User already exists.");
+      if (error.response) {
+        // Server responded with an error
+        switch (error.response.status) {
+          case 400:
+            setError("Please check your input and try again");
+            break;
+          case 409:
+            setError("This email is already registered");
+            break;
+          case 500:
+            setError("Server error. Please try again later");
+            break;
+          default:
+            setError("An error occurred during signup");
+        }
+      } else if (error.request) {
+        // Request was made but no response
+        setError("No response from server. Please check your internet connection");
+      } else {
+        // Error setting up the request
+        setError("Failed to make request. Please try again");
+      }
     } finally {
       setLoading(false);
     }
@@ -74,11 +103,12 @@ const Signup = () => {
       <h2>Registration</h2>
       <form onSubmit={handleSubmit}>
         {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
+        {success && <div className="success-message" style={{color: 'green', marginBottom: '10px'}}>{success}</div>}
         <div className="input-box">
           <input
             type="text"
-            name=" firstname"
-            placeholder="Enter your Fist Name"
+            name="firstname"
+            placeholder="Enter your First Name"
             value={formData.firstname}
             onChange={handleChange}
             required
