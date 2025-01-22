@@ -20,10 +20,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the user into the database
 	sqlStatement := `
-		INSERT INTO users (username, email, password_hash)
+		INSERT INTO users (name, email, password)
 		VALUES ($1, $2, $3)
 		RETURNING id`
-	err := database.DB.QueryRow(sqlStatement, user.Username, user.Password).Scan(&user.ID)
+	err := database.DB.QueryRow(sqlStatement, user.Name, user.Email, user.Password).Scan(&user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
