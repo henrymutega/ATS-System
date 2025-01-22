@@ -1,102 +1,128 @@
 "use client"
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import axiosInstance from '../../../utilis/axios';
 
 const Signup = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: "", 
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
+    setError(""); // Clear error when user types
   };
-  
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) =>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!formData.email.includes("@")){
-      alert("Please enter a valid email.");
+    // Validation
+    if (!formData.name.trim()) {
+      setError("Name is required");
       return;
     }
-    if (formData.password.length < 6){
-      alert("Password must be at least 6 characters");
+    if (!formData.email.includes("@")) {
+      setError("Please enter a valid email");
       return;
-    } 
-
-    if (formData.password !== formData.confirmPassword){
-      alert("Passwords do not match!");
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
       return;
     }
 
     setLoading(true);
 
-    try{
+    try {
       const response = await axiosInstance.post("/signup", {
-        username: formData.username,
+        name: formData.name,
         email: formData.email,
         password: formData.password,
       });
 
-      if (response.status >= 200 && response.status < 300){
+      console.log("Signup response:", response.data);
+
+      if (response.data.status === "success") {
         alert("Sign-up successful!");
         router.push("/login");
-        console.log(response.data);
-        setFormData({ username: "", email: "", password: "", confirmPassword: "" });
+      } else {
+        setError(response.data.message || "Signup failed");
       }
-    }catch(error) {
-      if(error.response){
-        alert("Sign-up failed: " + (error.response.data?.message || "Unknown error occurred"));
-        console.error("Error response:", error.response);
-      }else if(error.request){
-        alert("No response from the server. Please try again.");
-        console.error("Error request:", error.request);
-    }else {
-      alert("An error occurred. Please try again.");
-      console.error("Error message:", error.message);
+    } catch (error) {
+      console.error("Signup error:", error);
+      setError(error.response?.data?.message || "User already exists.");
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
   };
 
   return (
     <div className="wrapper">
-    <h2>Registration</h2>
-    <form onSubmit={handleSubmit} >
-      <div className="input-box">
-        <input type="text" name="username" placeholder="Enter your name" value={formData.username} onChange={handleChange} required/>
-      </div>
-      <div className="input-box">
-        <input type="text" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange}  required/>
-      </div>
-      <div className="input-box">
-        <input type="password" name="password" placeholder="Create password" value={formData.password} onChange={handleChange}  required/>
-      </div>
-      <div className="input-box">
-        <input type="password" name="confirmPassword" placeholder="Confirm password" value={formData.confirmPassword} onChange={handleChange}  required/>
-      </div>
-      <div className="policy">
-        <input type="checkbox" required/>
-        <h3>I accept all terms & condition</h3>
-      </div>
-      <div className="input-box button">
-      <button type="Submit" disabled={loading}>
-        {loading ? "Registering..." : "Register Now"}
-      </button>
-      </div>
-      <div className="text">
-        <h3>Already have an account <a href="/login">Login now</a></h3>
-      </div>
-    </form>
-  </div>
-  )
-}
+      <h2>Registration</h2>
+      <form onSubmit={handleSubmit}>
+        {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
+        <div className="input-box">
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter your name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="password"
+            name="password"
+            placeholder="Create password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="input-box">
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="input-box button">
+          <button type="submit" disabled={loading}>
+            {loading ? "Signing up..." : "Register Now"}
+          </button>
+        </div>
+        <div className="text">
+          <h3>Already have an account? <Link href="/login">Login now</Link></h3>
+        </div>
+      </form>
+    </div>
+  );
+};
 
 export default Signup;
