@@ -2,38 +2,44 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8081:8080"
+      - "8081:8081"
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=secretpassword
       - DB_NAME=authdb
+    networks:
+      - app-network
     depends_on:
       - postgres
 
   postgres:
-    image: postgres:latest  # Use the latest version or a specific one
+    image: postgres:latest
     container_name: postgres_container
     restart: always
     environment:
-      POSTGRES_USER: postgres           # PostgreSQL username
-      POSTGRES_PASSWORD: secretpassword   # PostgreSQL password
-      POSTGRES_DB: authdb         # Default database name
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: authdb
     ports:
-      - "5432:5432"  # Map PostgreSQL port to host
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   pgadmin:
-    image: dpage/pgadmin4  # Latest pgAdmin image
+    image: dpage/pgadmin4
     container_name: pgadmin_container
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com  # Login email for pgAdmin
-      PGADMIN_DEFAULT_PASSWORD: admin          # Password for pgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "8080:80"  # Map pgAdmin port to host
+      - "8080:80"
+    networks:
+      - app-network
     depends_on:
       - postgres
 
@@ -44,12 +50,17 @@ services:
     environment:
       - NODE_ENV=development
     volumes:
-      - ./frontend:/app  # Mount your local frontend directory to the container
-      - /app/node_modules  # Prevents overwriting node_modules with local host version
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
     depends_on:
-      - backend 
-    command: npm run dev  # Run Next.js in development mode
+      - backend
+    command: npm run dev
 
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
