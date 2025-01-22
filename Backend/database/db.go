@@ -9,40 +9,50 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// DB variable will hold the connection pool
 var DB *sql.DB
 
-// InitDB initializes the database connection
 func InitDB() {
-	// Connection string using environment variables
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-	)
+	// Get database connection parameters from environment variables
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
 
+	// Log database connection attempt
+	log.Printf("Attempting to connect to database at %s:%s", host, port)
+
+	// Construct connection string
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	// Open database connection
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("Error opening database:", err)
+		log.Fatalf("Error opening database: %v", err)
 	}
 
-	// Test the connection to the database
+	// Test the connection
 	err = DB.Ping()
 	if err != nil {
-		log.Fatal("Error connecting to database:", err)
+		log.Fatalf("Error connecting to the database: %v", err)
 	}
 
-	fmt.Println("Connected to the database successfully")
+	log.Println("Connected to the database successfully")
 
-	// Create users table if it doesn't exist
+	// Drop the existing users table if it exists
+	dropTableSQL := `DROP TABLE IF EXISTS users;`
+	_, err = DB.Exec(dropTableSQL)
+	if err != nil {
+		log.Fatalf("Error dropping users table: %v", err)
+	}
+
+	// Create users table with the correct schema
 	createTableSQL := `
-	CREATE TABLE IF NOT EXISTS users (
+	CREATE TABLE users (
 		id SERIAL PRIMARY KEY,
-		name VARCHAR(100),
+		name VARCHAR(100) NOT NULL,
 		email VARCHAR(100) UNIQUE NOT NULL,
 		password VARCHAR(100) NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -50,8 +60,8 @@ func InitDB() {
 
 	_, err = DB.Exec(createTableSQL)
 	if err != nil {
-		log.Fatal("Error creating users table:", err)
+		log.Fatalf("Error creating users table: %v", err)
 	}
 
-	fmt.Println("Users table created or already exists")
+	log.Println("Users table created successfully")
 }

@@ -15,6 +15,8 @@ import (
 
 // SignUpHandler handles user signup requests
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received signup request from: %s", r.RemoteAddr)
+
 	// Set CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -27,18 +29,20 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Read request body
 	var user models.User
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		log.Printf("Error decoding request body: %v", err)
 		http.Error(w, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("Received signup request for email: %s", user.Email)
+
 	// Validate user input
 	if user.Email == "" || user.Password == "" {
-		log.Printf("Invalid signup attempt: missing email or password")
+		log.Printf("Invalid signup attempt: missing required fields")
 		http.Error(w, "Email and password are required", http.StatusBadRequest)
 		return
 	}
@@ -53,7 +57,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exists {
-		log.Printf("Signup attempt for existing email: %s", user.Email)
+		log.Printf("User already exists with email: %s", user.Email)
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
@@ -67,7 +71,8 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert user into database
-	_, err = database.DB.Exec("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
+	_, err = database.DB.Exec(
+		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
 		user.Name, user.Email, string(hashedPassword))
 	if err != nil {
 		log.Printf("Error saving user to database: %v", err)
@@ -75,7 +80,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate JWT token for automatic login
+	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
@@ -88,21 +93,24 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send success response
+	// Set response headers
 	w.Header().Set("Content-Type", "application/json")
+
+	// Send success response
 	response := map[string]interface{}{
 		"status":  "success",
 		"message": "User created successfully",
 		"token":   tokenString,
 	}
 
+	// Encode and send response
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("User created successfully: %s", user.Email)
+	log.Printf("User successfully created with email: %s", user.Email)
 }
 
 // LoginHandler handles user login requests
