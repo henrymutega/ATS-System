@@ -72,8 +72,8 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Insert user into database
 	_, err = database.DB.Exec(
-		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
-		user.Name, user.Email, string(hashedPassword))
+		"INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4)",
+		user.FirstName, user.LastName, user.Email, string(hashedPassword))
 	if err != nil {
 		log.Printf("Error saving user to database: %v", err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
